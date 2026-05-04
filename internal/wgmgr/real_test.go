@@ -3,7 +3,7 @@ package wgmgr
 import (
 	"testing"
 
-	"github.com/wesdod/mira-vpn/mira-vpn-wgmgr/pkg/locationregistry"
+	"github.com/edgeproto/mira-vpn-wgmgr/pkg/locationregistry"
 )
 
 func TestIsSafeInterfaceName(t *testing.T) {

@@ -93,4 +93,4 @@ The compose file uses `network_mode: host` and `NET_ADMIN` so `wg set` can targe
 
 ## Go module
 
-Module path: `github.com/wesdod/mira-vpn/mira-vpn-wgmgr`. The control plane can depend on `github.com/wesdod/mira-vpn/mira-vpn-wgmgr/pkg/locationregistry` at a tagged version for shared location JSON types and loading.
+Module path: `github.com/edgeproto/mira-vpn-wgmgr`. The control plane can depend on `github.com/edgeproto/mira-vpn-wgmgr/pkg/locationregistry` at a tagged version for shared location JSON types and loading.

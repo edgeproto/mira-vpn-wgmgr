@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/wesdod/mira-vpn/mira-vpn-wgmgr/internal/wgmgr"
-	"github.com/wesdod/mira-vpn/mira-vpn-wgmgr/pkg/locationregistry"
+	"github.com/edgeproto/mira-vpn-wgmgr/internal/wgmgr"
+	"github.com/edgeproto/mira-vpn-wgmgr/pkg/locationregistry"
 )
 
 func main() {
