@@ -26,6 +26,7 @@ This repository is split from the control plane (`mira-vpn-backend`). The API ta
 
 - `WGMGR_LOCATION_PROFILES_FILE` — path to JSON array of profiles (takes precedence).
 - `WGMGR_LOCATION_PROFILES_JSON` — inline JSON if file is unset.
+- `WGMGR_ADMIN_TOKEN` — optional. When set, `POST /v1/peers` and `DELETE /v1/peers/{peerID}` require either `Authorization: Bearer <token>` or `X-Mira-Token: <token>`. `GET /health` stays unauthenticated for load balancers. Leave unset only on trusted networks (e.g. local dev).
 
 ## HTTP API
 
@@ -33,7 +34,42 @@ This repository is split from the control plane (`mira-vpn-backend`). The API ta
 - `POST /v1/peers` — JSON `{"userId":"...","location":"Finland"}`; `201` with peer metadata and WireGuard config.
 - `DELETE /v1/peers/{peerID}` — `204` on success.
 
-**Security:** do not expose port 9090 on the public Internet without TLS and authentication. Prefer TLS termination on Caddy or nginx in front of this process, and restrict who can reach the management port.
+When `WGMGR_ADMIN_TOKEN` is set, mutating routes return `401` with `{"error":"unauthorized"}` if the token is missing or wrong.
+
+## TLS and reverse proxy (recommended)
+
+Run `wgmgr` bound to loopback only (default `ListenAndServe` on `0.0.0.0` — in production bind `127.0.0.1` via your process manager or firewall so only the proxy can reach port 9090). Terminate TLS on **Caddy** or **nginx** on the public host; forward HTTPS to `http://127.0.0.1:9090` with the same `Authorization` / `X-Mira-Token` headers the control plane sends.
+
+**Caddy** (HTTPS on 443, Let’s Encrypt automatic if you use a real hostname):
+
+```caddyfile
+wg.example.com {
+	reverse_proxy 127.0.0.1:9090
+}
+```
+
+**nginx** (snippet):
+
+```nginx
+server {
+	listen 443 ssl http2;
+	server_name wg.example.com;
+	ssl_certificate     /path/to/fullchain.pem;
+	ssl_certificate_key /path/to/privkey.pem;
+	location / {
+		proxy_pass http://127.0.0.1:9090;
+		proxy_http_version 1.1;
+		proxy_set_header Host $host;
+		proxy_set_header X-Real-IP $remote_addr;
+		proxy_set_header Authorization $http_authorization;
+		proxy_set_header X-Mira-Token $http_x_mira_token;
+	}
+}
+```
+
+Generate a long random secret for `WGMGR_ADMIN_TOKEN` (and the matching value in the control plane). Rotate per POP if you want blast-radius isolation.
+
+**Security:** do not expose TCP 9090 on the public Internet without TLS and authentication. Prefer TLS at the edge proxy and keep this process on localhost.
 
 ## Build
 

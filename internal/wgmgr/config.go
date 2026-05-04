@@ -14,6 +14,7 @@ import (
 //
 // Env:
 //   - PORT: listen port (default "9090")
+//   - WGMGR_ADMIN_TOKEN: optional bearer / X-Mira-Token for mutating HTTP routes
 //   - WGMGR_MODE: "mock" (default) or "real"
 //   - WGMGR_MOCK_OUTPUT_DIR: directory for peer .conf and metadata (default ./var/wgmgr-mock)
 //   - WGMGR_MOCK_ENDPOINT: WireGuard server endpoint host:port for client configs
@@ -24,7 +25,10 @@ import (
 //   - WGMGR_REAL_DRY_RUN: if true, log command without executing it
 //   - WGMGR_REAL_COMMAND_TIMEOUT_SECONDS: timeout for wg command execution (default 5)
 //   - WGMGR_CLIENT_MTU: optional MTU line in client [Interface] (default 1280; set 0 to omit)
+//   - WGMGR_ADMIN_TOKEN: if set, POST /v1/peers and DELETE /v1/peers/{id} require
+//     Authorization: Bearer <token> or X-Mira-Token: <token>. GET /health stays open.
 type Config struct {
+	AdminToken       string
 	Port             string
 	Mode             string
 	ClientMTU        int
@@ -45,6 +49,7 @@ type Config struct {
 
 func LoadConfigFromEnv() Config {
 	return Config{
+		AdminToken:       os.Getenv("WGMGR_ADMIN_TOKEN"),
 		Port:             getEnv("PORT", "9090"),
 		Mode:             getEnv("WGMGR_MODE", "mock"),
 		ClientMTU:        getEnvInt("WGMGR_CLIENT_MTU", 1280),

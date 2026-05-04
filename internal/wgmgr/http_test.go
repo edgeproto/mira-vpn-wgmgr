@@ -113,3 +113,126 @@ func TestHandler_POST_v1_peers(t *testing.T) {
 		t.Fatalf("delete status %d: %s", delResp.StatusCode, b)
 	}
 }
+
+func TestAdminAuthHandler_peerRoutesRequireToken(t *testing.T) {
+	t.Parallel()
+
+	const secret = "edge-test-token-please-rotate"
+	dir := t.TempDir()
+	p, err := wgmgr.NewMockProvisioner(dir, "127.0.0.1:51820", wgmgr.DefaultMockServerPublicKey, "", "0.0.0.0/0,::/0", 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	h := wgmgr.NewHandler(p)
+	mux := http.NewServeMux()
+	h.Register(mux)
+	srv := httptest.NewServer(wgmgr.AdminAuthHandler(secret, mux))
+	t.Cleanup(srv.Close)
+
+	t.Run("health without auth", func(t *testing.T) {
+		t.Parallel()
+		resp, err := http.Get(srv.URL + "/health")
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode != http.StatusOK {
+			t.Fatalf("health: %d", resp.StatusCode)
+		}
+	})
+
+	t.Run("POST peers without auth", func(t *testing.T) {
+		t.Parallel()
+		req, err := http.NewRequest(http.MethodPost, srv.URL+"/v1/peers", strings.NewReader(`{"userId":"u1","location":"Finland"}`))
+		if err != nil {
+			t.Fatal(err)
+		}
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode != http.StatusUnauthorized {
+			b, _ := io.ReadAll(resp.Body)
+			t.Fatalf("want 401, got %d: %s", resp.StatusCode, b)
+		}
+	})
+
+	t.Run("POST peers with Bearer", func(t *testing.T) {
+		t.Parallel()
+		req, err := http.NewRequest(http.MethodPost, srv.URL+"/v1/peers", strings.NewReader(`{"userId":"u1","location":"Finland"}`))
+		if err != nil {
+			t.Fatal(err)
+		}
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", "Bearer "+secret)
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode != http.StatusCreated {
+			b, _ := io.ReadAll(resp.Body)
+			t.Fatalf("want 201, got %d: %s", resp.StatusCode, b)
+		}
+	})
+
+	t.Run("POST peers with X-Mira-Token", func(t *testing.T) {
+		t.Parallel()
+		req, err := http.NewRequest(http.MethodPost, srv.URL+"/v1/peers", strings.NewReader(`{"userId":"u2","location":"Finland"}`))
+		if err != nil {
+			t.Fatal(err)
+		}
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("X-Mira-Token", secret)
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode != http.StatusCreated {
+			b, _ := io.ReadAll(resp.Body)
+			t.Fatalf("want 201, got %d: %s", resp.StatusCode, b)
+		}
+	})
+
+	t.Run("DELETE peer without auth after create", func(t *testing.T) {
+		t.Parallel()
+		createReq, err := http.NewRequest(http.MethodPost, srv.URL+"/v1/peers", strings.NewReader(`{"userId":"u3","location":"Finland"}`))
+		if err != nil {
+			t.Fatal(err)
+		}
+		createReq.Header.Set("Content-Type", "application/json")
+		createReq.Header.Set("Authorization", "Bearer "+secret)
+		cr, err := http.DefaultClient.Do(createReq)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var out struct {
+			PeerID string `json:"peerId"`
+		}
+		if err := json.NewDecoder(cr.Body).Decode(&out); err != nil {
+			cr.Body.Close()
+			t.Fatal(err)
+		}
+		cr.Body.Close()
+		if out.PeerID == "" {
+			t.Fatal("empty peer id")
+		}
+
+		delReq, err := http.NewRequest(http.MethodDelete, srv.URL+"/v1/peers/"+out.PeerID, nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		dr, err := http.DefaultClient.Do(delReq)
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer dr.Body.Close()
+		if dr.StatusCode != http.StatusUnauthorized {
+			b, _ := io.ReadAll(dr.Body)
+			t.Fatalf("want 401, got %d: %s", dr.StatusCode, b)
+		}
+	})
+}

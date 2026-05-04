@@ -41,17 +41,18 @@ func main() {
 	h := wgmgr.NewHandler(prov)
 	mux := http.NewServeMux()
 	h.Register(mux)
+	handler := wgmgr.AdminAuthHandler(cfg.AdminToken, mux)
 
 	srv := &http.Server{
 		Addr:              ":" + cfg.Port,
-		Handler:           mux,
+		Handler:           handler,
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 
 	if cfg.Mode == "real" {
-		log.Printf("wgmgr (real) listening on %s, interface=%s, output=%s, dryRun=%t", srv.Addr, cfg.RealInterface, cfg.RealOutputDir, cfg.RealDryRun)
+		log.Printf("wgmgr (real) listening on %s, interface=%s, output=%s, dryRun=%t, adminAuth=%t", srv.Addr, cfg.RealInterface, cfg.RealOutputDir, cfg.RealDryRun, cfg.AdminToken != "")
 	} else {
-		log.Printf("wgmgr (mock) listening on %s, output=%s", srv.Addr, cfg.MockOutputDir)
+		log.Printf("wgmgr (mock) listening on %s, output=%s, adminAuth=%t", srv.Addr, cfg.MockOutputDir, cfg.AdminToken != "")
 	}
 	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatal(err)

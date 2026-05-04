@@ -16,6 +16,8 @@ services:
       - SYS_MODULE
     environment:
       PORT: "9090"
+      # Required when the management port is reachable beyond localhost (set the same secret on the control plane).
+      # WGMGR_ADMIN_TOKEN: "replace-with-long-random-secret"
       WGMGR_MODE: "real"
       WGMGR_REAL_INTERFACE: "wg0"
       WGMGR_REAL_OUTPUT_DIR: "/var/lib/mira-wgmgr/peers"
