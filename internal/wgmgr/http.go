@@ -6,7 +6,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/edgeproto/mira-vpn-wgmgr/pkg/locationregistry"
+	"github.com/wesdod/mira-vpn/mira-vpn-wgmgr/pkg/locationregistry"
 )
 
 // Provisioner abstracts peer provisioning for management API handlers.

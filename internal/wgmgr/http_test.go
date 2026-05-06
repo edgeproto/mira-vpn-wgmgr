@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/edgeproto/mira-vpn-wgmgr/internal/wgmgr"
+	"github.com/wesdod/mira-vpn/mira-vpn-wgmgr/internal/wgmgr"
 )
 
 func TestMockProvisioner_CreateDeleteRoundTrip(t *testing.T) {

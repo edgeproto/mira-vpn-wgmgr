@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/edgeproto/mira-vpn-wgmgr/pkg/locationregistry"
+	"github.com/wesdod/mira-vpn/mira-vpn-wgmgr/pkg/locationregistry"
 )
 
 type commandRunner interface {

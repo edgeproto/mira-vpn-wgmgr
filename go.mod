@@ -1,4 +1,4 @@
-module github.com/edgeproto/mira-vpn-wgmgr
+module github.com/wesdod/mira-vpn/mira-vpn-wgmgr
 
 go 1.25.0
 

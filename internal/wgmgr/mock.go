@@ -14,7 +14,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/edgeproto/mira-vpn-wgmgr/pkg/locationregistry"
+	"github.com/wesdod/mira-vpn/mira-vpn-wgmgr/pkg/locationregistry"
 	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 )
 
