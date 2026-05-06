@@ -24,6 +24,7 @@ type LocationProfile struct {
 	Name            string
 	Endpoint        string
 	ServerPublicKey string
+	WgmgrBaseURL    string
 	DNS             string
 	AllowedIPs      string
 	Keepalive       int
@@ -43,6 +44,7 @@ type profileInput struct {
 	Name            string `json:"name"`
 	Endpoint        string `json:"endpoint"`
 	ServerPublicKey string `json:"serverPublicKey"`
+	WgmgrBaseURL    string `json:"wgmgrBaseUrl"`
 	DNS             string `json:"dns"`
 	AllowedIPs      string `json:"allowedIPs"`
 	Keepalive       int    `json:"keepalive"`
@@ -194,6 +196,7 @@ func ParseLocationProfilesJSON(raw string) (map[string]LocationProfile, error) {
 			Name:            in.Name,
 			Endpoint:        in.Endpoint,
 			ServerPublicKey: in.ServerPublicKey,
+			WgmgrBaseURL:    in.WgmgrBaseURL,
 			DNS:             in.DNS,
 			AllowedIPs:      in.AllowedIPs,
 			Keepalive:       in.Keepalive,
@@ -252,6 +255,7 @@ func normalizeProfile(name string, profile LocationProfile) (LocationProfile, er
 	profile.Name = canonicalName
 	profile.Endpoint = strings.TrimSpace(profile.Endpoint)
 	profile.ServerPublicKey = strings.TrimSpace(profile.ServerPublicKey)
+	profile.WgmgrBaseURL = strings.TrimSpace(profile.WgmgrBaseURL)
 	profile.DNS = strings.TrimSpace(profile.DNS)
 	profile.AllowedIPs = strings.TrimSpace(profile.AllowedIPs)
 	if profile.AllowedIPs == "" {

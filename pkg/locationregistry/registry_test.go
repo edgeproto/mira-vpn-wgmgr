@@ -96,6 +96,7 @@ func TestParseLocationProfilesJSON_NormalizesProfiles(t *testing.T) {
 			"name":"Finland",
 			"endpoint":"fi.example.com:443",
 			"serverPublicKey":"pub-fi",
+			"wgmgrBaseUrl":"  http://fi-wgmgr.example:9090/  ",
 			"dns":"1.1.1.1",
 			"allowedIPs":"0.0.0.0/0",
 			"keepalive":30
@@ -124,6 +125,13 @@ func TestParseLocationProfilesJSON_NormalizesProfiles(t *testing.T) {
 	}
 	if de.Keepalive != 25 {
 		t.Fatalf("expected default keepalive 25, got %d", de.Keepalive)
+	}
+	fi, ok := profiles["finland"]
+	if !ok {
+		t.Fatalf("expected finland profile key")
+	}
+	if fi.WgmgrBaseURL != "http://fi-wgmgr.example:9090/" {
+		t.Fatalf("expected normalized wgmgrBaseUrl, got %q", fi.WgmgrBaseURL)
 	}
 }
 
