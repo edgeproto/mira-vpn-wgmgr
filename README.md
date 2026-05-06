@@ -40,7 +40,7 @@ When `WGMGR_ADMIN_TOKEN` is set, mutating routes return `401` with `{"error":"un
 
 Run `wgmgr` bound to loopback only (default `ListenAndServe` on `0.0.0.0` — in production bind `127.0.0.1` via your process manager or firewall so only the proxy can reach port 9090). Terminate TLS on **Caddy** or **nginx** on the public host; forward HTTPS to `http://127.0.0.1:9090` with the same `Authorization` / `X-Mira-Token` headers the control plane sends.
 
-**Caddy** (HTTPS on 443, Let’s Encrypt automatic if you use a real hostname):
+**Caddy** (HTTPS on 51820, Let’s Encrypt automatic if you use a real hostname):
 
 ```caddyfile
 wg.example.com {
@@ -52,7 +52,7 @@ wg.example.com {
 
 ```nginx
 server {
-	listen 443 ssl http2;
+	listen 51820 ssl http2;
 	server_name wg.example.com;
 	ssl_certificate     /path/to/fullchain.pem;
 	ssl_certificate_key /path/to/privkey.pem;
@@ -89,7 +89,8 @@ The compose file uses `network_mode: host` and `NET_ADMIN` so `wg set` can targe
 ## Firewall
 
 - Allow **UDP 51820** (or your chosen WireGuard listen port) from clients.
-- Allow **TCP 443** (or your TLS port) only to the reverse proxy that forwards to `127.0.0.1:9090`; avoid publishing 9090 directly to the Internet.
+<!-- - Allow **TCP 443** (or your TLS port) only to the reverse proxy that forwards to `127.0.0.1:9090`; avoid publishing 9090 directly to the Internet. -->
+- Allow **UDP 9090** (or your chosen WireGuard Manager listen port) from backend.
 
 ## Go module
 
