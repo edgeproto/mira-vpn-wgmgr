@@ -10,14 +10,16 @@
 services:
   wgmgr:
     build: .
+    env_file:
+      - .env
     network_mode: host
     cap_add:
       - NET_ADMIN
       - SYS_MODULE
     environment:
       PORT: "9090"
-      # Required when the management port is reachable beyond localhost (set the same secret on the control plane).
-      # WGMGR_ADMIN_TOKEN: "replace-with-long-random-secret"
+      # Required when the management port is reachable beyond localhost.
+      WGMGR_ADMIN_TOKEN: "${WGMGR_ADMIN_TOKEN:-}"
       WGMGR_MODE: "real"
       WGMGR_REAL_INTERFACE: "wg0"
       WGMGR_REAL_OUTPUT_DIR: "/var/lib/mira-wgmgr/peers"
@@ -27,6 +29,12 @@ services:
     volumes:
       - mira-wgmgr-peers:/var/lib/mira-wgmgr/peers
       # - ./config/location-profiles.json:/etc/mira/location-profiles.json:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:9090/health >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
 
 volumes:
   mira-wgmgr-peers:
